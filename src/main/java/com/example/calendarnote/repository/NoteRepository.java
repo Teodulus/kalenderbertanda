@@ -1,12 +1,10 @@
 package com.example.calendarnote.repository;
 
-import com.example.calendarnote.model.Note;
+import com.example.calendarnote.entity.Note;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
-import java.util.Optional;
-import java.time.LocalDate;
 
 public interface NoteRepository extends JpaRepository<Note, Long> {
+    // Mencari note berdasarkan ID user
     List<Note> findByUser_Id(Long userId);
-    Optional<Note> findByUser_IdAndDate(Long userId, LocalDate date);
 }
