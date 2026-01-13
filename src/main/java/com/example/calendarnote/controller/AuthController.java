@@ -1,27 +1,43 @@
 package com.example.calendarnote.controller;
 
-import com.example.calendarnote.entity.User;
-import com.example.calendarnote.service.AuthService;
+import com.example.calendarnote.model.User;
+import com.example.calendarnote.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
-@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
-    private AuthService authService;
+    private UserRepository userRepository;
 
-    // Endpoint untuk Register User Baru
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // Endpoint: Menerima pendaftaran user baru
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
-        authService.register(user);
-        return "User berhasil didaftarkan! Silakan login.";
-    }
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
 
-    // Endpoint Cek Login (Dipanggil oleh HTML Frontend)
-    @GetMapping("/check")
-    public String checkLogin() {
-        return "Login Berhasil";
+        // 1. Cek apakah Username sudah ada di database?
+        Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
+        if (existingUser.isPresent()) {
+            return ResponseEntity.badRequest().body("Maaf, Username sudah dipakai orang lain!");
+        }
+
+        // 2. Acak password supaya aman (Enkripsi)
+        String passwordRahasia = passwordEncoder.encode(user.getPassword());
+        user.setPassword(passwordRahasia);
+
+        // 3. Set Role default jadi 'USER'
+        user.setRole("USER");
+
+        // 4. Simpan ke Database
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Registrasi Berhasil! Silakan Login.");
     }
 }

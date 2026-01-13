@@ -3,162 +3,325 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar Note 2026</title>
+    <title>Kalender Resmi 2026</title>
     <style>
-        /* GAYA TAMPILAN (CSS) */
-        body { font-family: sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding-top: 50px; }
-        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 400px; }
-        h2 { text-align: center; color: #333; }
+        /* CSS DASAR */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
 
-        /* Form Login */
-        #login-form { display: flex; flex-direction: column; gap: 10px; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        button { padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background-color: #218838; }
-        .error { color: red; text-align: center; font-size: 0.9em; display: none; }
+        /* Container Utama */
+        .main-container { max-width: 1200px; margin: 0 auto; }
 
-        /* Kalender */
-        #calendar-view { display: none; } /* Sembunyi dulu sebelum login */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .day { padding: 10px; background: #eee; border-radius: 5px; cursor: pointer; }
-        .day:hover { background: #ddd; }
-        .has-note { background-color: #d4edda; border: 1px solid #c3e6cb; }
-        .logout-btn { background-color: #dc3545; font-size: 0.8em; }
+        /* Header & Tombol */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { margin: 0; font-size: 1.5rem; color: #333; }
 
-        /* Modal Catatan */
-        #note-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 300px; border-radius: 5px; }
-        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-login { background-color: #007bff; color: white; }
+        .btn-register { background-color: #28a745; color: white; margin-left: 10px; }
+        .btn-logout { background-color: #dc3545; color: white; display: none; }
+        button:hover { opacity: 0.9; }
+
+        /* GRID TAHUNAN (12 Bulan) */
+        .year-grid {
+            display: none; /* Sembunyi kalau belum login */
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Kartu Bulan */
+        .month-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .month-title { text-align: center; font-weight: bold; margin-bottom: 10px; color: #444; text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+
+        /* Grid Tanggal */
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.9em; }
+        .day-name { font-weight: bold; color: #888; font-size: 0.8em; margin-bottom: 5px; }
+        .date-cell { padding: 8px 0; border-radius: 4px; cursor: pointer; }
+        .date-cell:hover { background-color: #e9ecef; }
+
+        /* WARNA WARNI TANGGAL */
+        .is-holiday { background-color: #ffcccc; color: #d60000; font-weight: bold; } /* Merah Libur */
+        .has-note { border: 2px solid #28a745; } /* Ada Catatan */
+        .empty { pointer-events: none; }
+
+        /* MODAL (Login/Register/Note) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 350px; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 5px; margin-top: 5px; }
+        .note-display { font-size: 0.9em; color: #555; background: #f9f9f9; padding: 10px; border-left: 3px solid #28a745; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="login-view">
-        <h2>🔐 Silakan Login</h2>
-        <div id="login-form">
-            <input type="text" id="username" placeholder="Username (contoh: budi)">
-            <input type="password" id="password" placeholder="Password">
-            <p id="error-msg" class="error">Login Gagal! Cek username/password.</p>
-            <button onclick="login()">MASUK</button>
+<div class="main-container">
+    <div class="top-bar">
+        <h1>Kalender Resmi 2026</h1>
+        <div id="auth-buttons">
+            <button class="btn-login" onclick="showLogin()">Login</button>
+            <button class="btn-register" onclick="showRegister()">Daftar</button>
         </div>
+        <button id="logout-btn" class="btn-logout" onclick="logout()">Keluar</button>
     </div>
 
-    <div id="calendar-view">
-        <div class="header">
-            <h3 id="month-year">Januari 2026</h3>
-            <button class="logout-btn" onclick="logout()">Keluar</button>
-        </div>
-        <div class="grid" id="days-grid">
-        </div>
+    <div id="calendar-area" class="year-grid">
+    </div>
+
+    <div id="welcome-msg" style="text-align: center; margin-top: 50px; color: #666;">
+        <h3>Silakan Login untuk melihat Kalender dan Catatan Anda.</h3>
     </div>
 </div>
 
-<div id="note-modal">
+<div id="login-modal" class="modal">
     <div class="modal-content">
-        <h3>Catatan Tanggal <span id="selected-date"></span></h3>
-        <textarea id="note-content" placeholder="Tulis catatan..."></textarea>
-        <button onclick="saveNote()">Simpan</button>
-        <button onclick="closeModal()" style="background:#6c757d; margin-top:5px;">Batal</button>
+        <span class="close-btn" onclick="closeModal('login-modal')">&times;</span>
+        <h2>Masuk</h2>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="login-user">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="login-pass">
+        </div>
+        <button class="btn-login" style="width: 100%" onclick="doLogin()">MASUK</button>
+    </div>
+</div>
+
+<div id="register-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('register-modal')">&times;</span>
+        <h2>Daftar Baru</h2>
+        <div class="form-group">
+            <label>Username Baru</label>
+            <input type="text" id="reg-user">
+        </div>
+        <div class="form-group">
+            <label>Password Baru</label>
+            <input type="password" id="reg-pass">
+        </div>
+        <button class="btn-register" style="width: 100%" onclick="doRegister()">DAFTAR SEKARANG</button>
+    </div>
+</div>
+
+<div id="note-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('note-modal')">&times;</span>
+        <h3 id="note-date-title">Tanggal</h3>
+        <p id="holiday-info" style="color: #d60000; font-weight: bold; font-size: 0.9em;"></p>
+
+        <div class="form-group">
+            <label>Catatan Anda:</label>
+            <textarea id="note-text" rows="4" placeholder="Tulis rencana di sini..."></textarea>
+        </div>
+        <button class="btn-login" onclick="saveNote()">Simpan Catatan</button>
     </div>
 </div>
 
 <script>
-    // LOGIKA PROGRAM (JAVASCRIPT)
-    let authHeader = ''; // Simpan password di sini
-    let currentYear = 2026;
-    let currentMonth = 0; // 0 = Januari
+    // --- DATA LIBUR (Sesuai Permintaan) ---
+    const holidays = {
+        "1-1": "Tahun Baru 2026 Masehi",
+        "1-7": "Hari Raya Natal Timur",
+        "1-16": "Isra Mikraj Nabi Muhammad SAW",
+        "2-2": "Turunnya Titah Leluhur",
+        "2-17": "Tahun Baru Imlek 2577 Kongzili",
+        "3-16": "Cuti Bersama Idulfitri", "3-17": "Cuti Bersama Idulfitri", "3-18": "Cuti Bersama Idulfitri",
+        "3-19": "Hari Suci Nyepi",
+        "3-20": "Cuti Bersama (Kejepit Nyepi)",
+        "3-21": "Hari Raya Idulfitri 1447 H", "3-22": "Hari Raya Idulfitri 1447 H",
+        "3-23": "Cuti Bersama Idulfitri", "3-24": "Cuti Bersama Idulfitri", "3-25": "Cuti Bersama Idulfitri",
+        "3-29": "Minggu Palma Barat",
+        "4-3": "Wafat Yesus Kristus (Barat)",
+        "4-5": "Paskah Barat",
+        "4-10": "Jumat Agung Ortodoks / Kemerdekaan Domino",
+        "4-12": "Paskah Ortodoks",
+        "5-14": "Kenaikan Yesus Kristus (Barat)",
+        "5-21": "Kenaikan Yesus Kristus (Timur)",
+        "5-27": "Iduladha 1447 H",
+        "5-31": "Waisak 2570 BE",
+        "6-16": "Tahun Baru Islam 1448 H",
+        "7-1": "Hari Buruh Internasional",
+        "8-1": "Hari Revolusi Nasional", "8-2": "Hari Revolusi Nasional", "8-3": "Hari Revolusi Nasional",
+        "8-15": "Dormisi Bunda Theotokos",
+        "8-25": "Maulid Nabi Muhammad SAW",
+        "9-7": "Hari Persatuan Domino",
+        "12-14": "Lahirnya Sang Yang Tanggap",
+        "12-24": "Cuti Bersama Natal",
+        "12-25": "Hari Raya Natal Barat"
+    };
 
-    async function login() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        // Bikin "Kunci" Basic Auth
+    let authHeader = '';
+    let userNotes = []; // Menyimpan data catatan dari server
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+    // --- FUNGSI LOGIN & REGISTER ---
+    function showLogin() { document.getElementById('login-modal').style.display = 'flex'; }
+    function showRegister() { document.getElementById('register-modal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    async function doLogin() {
+        const u = document.getElementById('login-user').value;
+        const p = document.getElementById('login-pass').value;
         authHeader = 'Basic ' + btoa(u + ":" + p);
 
-        // Coba tes koneksi ke API
+        // Cek Login dengan mengambil data notes
         try {
-            const response = await fetch('/api/notes', { headers: { 'Authorization': authHeader } });
-
-            if (response.ok) {
-                // Kalau sukses, tampilkan kalender
-                document.getElementById('login-view').style.display = 'none';
-                document.getElementById('calendar-view').style.display = 'block';
-                loadCalendar();
+            const res = await fetch('/api/notes', { headers: { 'Authorization': authHeader } });
+            if (res.ok) {
+                userNotes = await res.json();
+                loginSuccess();
+                closeModal('login-modal');
             } else {
-                showError();
+                alert("Login Gagal! Cek username/password.");
             }
-        } catch (e) {
-            showError();
+        } catch (e) { alert("Error koneksi."); }
+    }
+
+    async function doRegister() {
+        const u = document.getElementById('reg-user').value;
+        const p = document.getElementById('reg-pass').value;
+
+        try {
+            const res = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+
+            if (res.ok) {
+                alert("Registrasi Berhasil! Silakan Login.");
+                closeModal('register-modal');
+                showLogin();
+            } else {
+                const text = await res.text();
+                alert("Gagal: " + text);
+            }
+        } catch (e) { alert("Error koneksi."); }
+    }
+
+    function loginSuccess() {
+        document.getElementById('auth-buttons').style.display = 'none';
+        document.getElementById('welcome-msg').style.display = 'none';
+        document.getElementById('logout-btn').style.display = 'block';
+        document.getElementById('calendar-area').style.display = 'grid';
+        renderFullCalendar();
+    }
+
+    function logout() { location.reload(); }
+
+    // --- RENDER KALENDER 12 BULAN ---
+    function renderFullCalendar() {
+        const container = document.getElementById('calendar-area');
+        container.innerHTML = ""; // Bersihkan
+
+        for (let m = 0; m < 12; m++) {
+            // Buat wadah bulan
+            const monthDiv = document.createElement('div');
+            monthDiv.className = 'month-card';
+
+            // Judul Bulan
+            const title = document.createElement('div');
+            title.className = 'month-title';
+            title.innerText = monthNames[m];
+            monthDiv.appendChild(title);
+
+            // Grid Hari (Senin - Minggu)
+            const grid = document.createElement('div');
+            grid.className = 'days-grid';
+
+            // Nama Hari
+            ['M', 'S', 'S', 'R', 'K', 'J', 'S'].forEach(d => {
+                const h = document.createElement('div');
+                h.className = 'day-name';
+                h.innerText = d;
+                grid.appendChild(h);
+            });
+
+            // Hitung tanggal
+            const date = new Date(2026, m, 1);
+            const firstDayIndex = date.getDay(); // 0 = Minggu
+            const daysInMonth = new Date(2026, m + 1, 0).getDate();
+
+            // Sel kosong di awal bulan
+            for (let x = 0; x < firstDayIndex; x++) {
+                const empty = document.createElement('div');
+                empty.className = 'empty';
+                grid.appendChild(empty);
+            }
+
+            // Loop tanggal 1 - 31
+            for (let d = 1; d <= daysInMonth; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'date-cell';
+                cell.innerText = d;
+
+                // Format tanggal YYYY-MM-DD
+                const dateKey = `2026-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const holidayKey = `${m+1}-${d}`; // Format libur: 1-1, 12-25
+
+                // Cek Libur
+                if (holidays[holidayKey]) {
+                    cell.classList.add('is-holiday');
+                    cell.title = holidays[holidayKey];
+                }
+
+                // Cek Catatan User
+                const note = userNotes.find(n => n.date === dateKey);
+                if (note) {
+                    cell.classList.add('has-note');
+                    if (!cell.title) cell.title = "Ada catatan";
+                }
+
+                // Klik tanggal
+                cell.onclick = () => openNoteModal(dateKey, holidayKey, note ? note.content : "");
+                grid.appendChild(cell);
+            }
+
+            monthDiv.appendChild(grid);
+            container.appendChild(monthDiv);
         }
     }
 
-    function showError() {
-        document.getElementById('error-msg').style.display = 'block';
-    }
+    // --- FITUR CATATAN ---
+    let currentNoteDate = "";
 
-    function logout() {
-        location.reload(); // Refresh halaman
-    }
+    function openNoteModal(dateStr, holidayKey, content) {
+        currentNoteDate = dateStr;
+        document.getElementById('note-date-title').innerText = "Catatan: " + dateStr;
+        document.getElementById('note-text').value = content;
 
-    async function loadCalendar() {
-        const grid = document.getElementById('days-grid');
-        grid.innerHTML = ''; // Bersihkan lama
-
-        // Ambil data catatan dari server
-        const res = await fetch('/api/notes', { headers: { 'Authorization': authHeader } });
-        const notes = await res.json();
-
-        // Logika Kalender Sederhana (Januari 2026)
-        const daysInMonth = 31;
-
-        for (let i = 1; i <= daysInMonth; i++) {
-            const div = document.createElement('div');
-            div.className = 'day';
-            div.innerText = i;
-
-            // Cek apakah tanggal ini punya catatan?
-            // Format tanggal di database: YYYY-MM-DD
-            const dateStr = `2026-01-${String(i).padStart(2, '0')}`;
-            const note = notes.find(n => n.date === dateStr);
-
-            if (note) {
-                div.classList.add('has-note'); // Warnai hijau
-                div.title = note.content; // Hover muncul teks
-            }
-
-            div.onclick = () => openModal(dateStr, note ? note.content : '');
-            grid.appendChild(div);
+        const holInfo = document.getElementById('holiday-info');
+        if (holidays[holidayKey]) {
+            holInfo.innerText = "LIBUR: " + holidays[holidayKey];
+        } else {
+            holInfo.innerText = "";
         }
-    }
 
-    // --- Logika Catatan ---
-    let activeDate = '';
-    function openModal(date, content) {
-        activeDate = date;
-        document.getElementById('selected-date').innerText = date;
-        document.getElementById('note-content').value = content;
-        document.getElementById('note-modal').style.display = 'block';
-    }
-
-    function closeModal() {
-        document.getElementById('note-modal').style.display = 'none';
+        document.getElementById('note-modal').style.display = 'flex';
     }
 
     async function saveNote() {
-        const content = document.getElementById('note-content').value;
+        const content = document.getElementById('note-text').value;
 
-        await fetch('/api/notes', {
-            method: 'POST',
-            headers: {
-                'Authorization': authHeader,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ date: activeDate, content: content })
-        });
+        try {
+            await fetch('/api/notes', {
+                method: 'POST',
+                headers: {
+                    'Authorization': authHeader,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ date: currentNoteDate, content: content })
+            });
 
-        closeModal();
-        loadCalendar(); // Refresh biar warnanya berubah
+            // Refresh data
+            const res = await fetch('/api/notes', { headers: { 'Authorization': authHeader } });
+            userNotes = await res.json();
+
+            renderFullCalendar(); // Gambar ulang untuk update tanda hijau
+            closeModal('note-modal');
+        } catch (e) { alert("Gagal menyimpan."); }
     }
 </script>
 </body>
