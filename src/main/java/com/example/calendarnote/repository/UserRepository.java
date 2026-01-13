@@ -1,6 +1,6 @@
 package com.example.calendarnote.repository;
 
-import com.example.calendarnote.model.User; // Pastikan import model
+import com.example.calendarnote.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

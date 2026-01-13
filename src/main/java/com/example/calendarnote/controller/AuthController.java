@@ -20,16 +20,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-        // Cek apakah username sudah ada
         Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
         if (existingUser.isPresent()) {
             return ResponseEntity.badRequest().body("Username sudah terpakai!");
         }
-
-        // Enkripsi password sebelum disimpan
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("USER");
-
         userRepository.save(user);
         return ResponseEntity.ok("Registrasi Berhasil!");
     }

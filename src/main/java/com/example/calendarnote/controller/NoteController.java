@@ -1,9 +1,7 @@
 package com.example.calendarnote.controller;
 
-// PERHATIKAN IMPORT INI: Semuanya sekarang ambil dari .model
 import com.example.calendarnote.model.Note;
 import com.example.calendarnote.model.User;
-
 import com.example.calendarnote.repository.NoteRepository;
 import com.example.calendarnote.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,18 +27,15 @@ public class NoteController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // 1. Ambil semua note user
     @GetMapping
     public List<Note> getMyNotes() {
-        return noteRepository.findByUserId(getCurrentUser().getId());
+        return noteRepository.findByUser_Id(getCurrentUser().getId());
     }
 
-    // 2. Simpan atau Update Note
     @PostMapping
     public Note saveNote(@RequestBody Note request) {
         User user = getCurrentUser();
-
-        Optional<Note> existingNote = noteRepository.findByUserIdAndDate(user.getId(), request.getDate());
+        Optional<Note> existingNote = noteRepository.findByUser_IdAndDate(user.getId(), request.getDate());
 
         Note note;
         if (existingNote.isPresent()) {

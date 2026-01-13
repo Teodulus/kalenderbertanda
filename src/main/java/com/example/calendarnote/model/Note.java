@@ -1,4 +1,4 @@
-package com.example.calendarnote.model; // SEKARANG JADI MODEL
+package com.example.calendarnote.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -19,17 +19,13 @@ public class Note {
     @JoinColumn(name = "user_id")
     private User user;
 
-    // --- GETTERS & SETTERS MANUAL (Supaya Anti-Error) ---
-
+    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
-
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
-
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 }
