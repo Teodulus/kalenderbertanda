@@ -1,7 +1,9 @@
 package com.example.calendarnote.controller;
 
-import com.example.calendarnote.entity.Note;
-import com.example.calendarnote.entity.User;
+// PERHATIKAN IMPORT INI: Semuanya sekarang ambil dari .model
+import com.example.calendarnote.model.Note;
+import com.example.calendarnote.model.User;
+
 import com.example.calendarnote.repository.NoteRepository;
 import com.example.calendarnote.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,27 +30,24 @@ public class NoteController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // 1. Ambil semua note user untuk ditampilkan di kalender
+    // 1. Ambil semua note user
     @GetMapping
     public List<Note> getMyNotes() {
         return noteRepository.findByUserId(getCurrentUser().getId());
     }
 
-    // 2. Simpan atau Update Note berdasarkan Tanggal
+    // 2. Simpan atau Update Note
     @PostMapping
     public Note saveNote(@RequestBody Note request) {
         User user = getCurrentUser();
 
-        // Cek apakah di tanggal itu user sudah punya note?
         Optional<Note> existingNote = noteRepository.findByUserIdAndDate(user.getId(), request.getDate());
 
         Note note;
         if (existingNote.isPresent()) {
-            // Update
             note = existingNote.get();
             note.setContent(request.getContent());
         } else {
-            // Baru
             note = new Note();
             note.setDate(request.getDate());
             note.setContent(request.getContent());

@@ -16,26 +16,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Matikan CSRF agar kita bisa kirim data Register dengan mudah
-                .csrf(csrf -> csrf.disable())
-
-                // Aturan Siapa yang Boleh Masuk
+                .csrf(csrf -> csrf.disable()) // Matikan CSRF untuk fitur register sederhana
                 .authorizeHttpRequests(auth -> auth
-                        // Izinkan akses ke Register, Halaman Utama, CSS, JS tanpa Login
+                        // URL ini BOLEH diakses siapa saja (tanpa login)
                         .requestMatchers("/", "/index.html", "/register", "/css/**", "/js/**").permitAll()
-                        // Sisanya (termasuk API Notes) WAJIB Login
+                        // Sisanya HARUS Login
                         .anyRequest().authenticated()
                 )
-
-                // Gunakan Login standar (Popup browser atau form login kita)
-                .httpBasic(Customizer.withDefaults());
+                .httpBasic(Customizer.withDefaults()); // Login standar
 
         return http.build();
     }
 
-    // Alat untuk mengacak (enkripsi) password agar aman
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Alat pengacak password
     }
 }

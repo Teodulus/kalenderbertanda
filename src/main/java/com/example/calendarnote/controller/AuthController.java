@@ -18,26 +18,19 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Endpoint: Menerima pendaftaran user baru
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
-
-        // 1. Cek apakah Username sudah ada di database?
+        // Cek apakah username sudah ada
         Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
         if (existingUser.isPresent()) {
-            return ResponseEntity.badRequest().body("Maaf, Username sudah dipakai orang lain!");
+            return ResponseEntity.badRequest().body("Username sudah terpakai!");
         }
 
-        // 2. Acak password supaya aman (Enkripsi)
-        String passwordRahasia = passwordEncoder.encode(user.getPassword());
-        user.setPassword(passwordRahasia);
-
-        // 3. Set Role default jadi 'USER'
+        // Enkripsi password sebelum disimpan
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("USER");
 
-        // 4. Simpan ke Database
         userRepository.save(user);
-
-        return ResponseEntity.ok("Registrasi Berhasil! Silakan Login.");
+        return ResponseEntity.ok("Registrasi Berhasil!");
     }
 }
