@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalender Catatan 2026</title>
+    <style>
+        /* ... (Paste CSS LAMA kamu disini) ... */
+        /* Tambahan CSS untuk Modal Note & Login */
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 8px; width: 300px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        input, textarea { width: 100%; margin-bottom: 10px; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px; cursor: pointer; background: #34495e; color: white; border: none; width: 100%; }
+        button.close { background: #e74c3c; margin-top: 5px; }
+
+        .has-note::after {
+            content: "•"; color: blue; font-size: 20px; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-modal" class="modal" style="display: flex;">
+    <div class="modal-content">
+        <h2>Silakan Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Masuk</button>
+        <p style="text-align:center; margin-top:10px; font-size:12px;">Admin: admin/admin123</p>
+    </div>
+</div>
+
+<div id="note-modal" class="modal">
+    <div class="modal-content">
+        <h3 id="modal-date-title">Catatan</h3>
+        <textarea id="note-content" rows="5" placeholder="Tulis catatan..."></textarea>
+        <button onclick="saveNote()">Simpan</button>
+        <button class="close" onclick="closeNoteModal()">Tutup</button>
+    </div>
+</div>
+
+<div class="today-banner" id="banner-text">Memuat...</div>
+<h1>Kalender Resmi 2026</h1>
+<div class="year-container" id="calendar-wrapper"></div>
+<script>
+    // --- AUTHENTICATION ---
+    let authHeader = ""; // Menyimpan token login
+
+    async function login() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        // Membuat Basic Auth Header
+        const credentials = btoa(u + ":" + p);
+
+        try {
+            // Cek Login ke Backend
+            const response = await fetch('/api/auth/check', {
+                headers: { 'Authorization': 'Basic ' + credentials }
+            });
+
+            if (response.ok) {
+                authHeader = 'Basic ' + credentials;
+                document.getElementById('login-modal').style.display = 'none';
+                loadNotes(); // Ambil catatan dari database setelah login
+            } else {
+                alert("Username/Password salah!");
+            }
+        } catch (e) {
+            alert("Gagal koneksi ke server");
+        }
+    }
+
+    // --- FETCH & SAVE NOTES ---
+    let myNotes = {}; // Menyimpan data note di memori browser
+
+    async function loadNotes() {
+        const res = await fetch('/api/notes', { headers: { 'Authorization': authHeader } });
+        const data = await res.json();
+
+        // Masukkan ke myNotes format: "YYYY-MM-DD": "Isi note"
+        myNotes = {};
+        data.forEach(note => {
+            myNotes[note.date] = note.content;
+
+            // Cari elemen tanggal di kalender dan beri tanda
+            // Format ID tanggal di HTML kamu harus disesuaikan atau dicari manual
+            // (Ini butuh penyesuaian sedikit di logika generate kalendermu)
+        });
+        alert("Data Note berhasil dimuat!");
+    }
+
+    async function saveNote() {
+        const date = document.getElementById('modal-date-title').innerText; // Format harus YYYY-MM-DD
+        const content = document.getElementById('note-content').value;
+
+        await fetch('/api/notes', {
+            method: 'POST',
+            headers: {
+                'Authorization': authHeader,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ date: date, content: content })
+        });
+
+        alert("Disimpan!");
+        closeNoteModal();
+        loadNotes(); // Refresh data
+    }
+
+    // --- FUNGSI KALENDER LAMA KAMU (DENGAN SEDIKIT MODIFIKASI) ---
+    // Di bagian loop `for (let day = 1 ...)` di script lama kamu,
+    // Tambahkan: onclick="openNote('${year}-${monthIndex + 1}-${day}')"
+
+    function openNote(dateStr) {
+        // Ubah format tanggal jadi YYYY-MM-DD (tambah 0 di depan jika bulan/hari < 10)
+        const parts = dateStr.split('-');
+        const y = parts[0];
+        const m = parts[1].padStart(2, '0');
+        const d = parts[2].padStart(2, '0');
+        const formattedDate = `${y}-${m}-${d}`;
+
+        document.getElementById('note-modal').style.display = 'flex';
+        document.getElementById('modal-date-title').innerText = formattedDate;
+        document.getElementById('note-content').value = myNotes[formattedDate] || "";
+    }
+
+    function closeNoteModal() {
+        document.getElementById('note-modal').style.display = 'none';
+    }
+
+    // ... PASTE LOGIKA GENERATE KALENDER LAMA KAMU DISINI ...
+    // TAPI: Di baris htmlContent += `<div class="${className}" ...
+    // UBAH JADI:
+    // htmlContent += `<div class="${className}" ${attr} onclick="openNote('${year}-${monthIndex+1}-${day}')">${day}</div>`;
+
+</script>
+</body>
+</html>
